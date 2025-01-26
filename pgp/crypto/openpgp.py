@@ -31,17 +31,6 @@ class OpenPGP:
         encrypted_aes_iv_len = struct.pack(">I", len(encrypted_aes_iv))
         signature_len = struct.pack(">I", len(signature))
 
-        print("BEGIN")
-        print(encrypted_message_len)
-        print(encrypted_aes_key_len)
-        print(encrypted_aes_iv_len)
-        print(signature_len)
-        print(encrypted_message)
-        print(encrypted_aes_key)
-        print(encrypted_aes_iv)
-        print(signature)
-        print("END")
-
         result = bytearray()
         result += encrypted_message_len
         result += encrypted_aes_key_len
@@ -74,17 +63,6 @@ class OpenPGP:
         message = message[encrypted_aes_iv_len:]
 
         signature = message[0:signature_len]
-
-        print("BEGIN")
-        print(encrypted_message_len)
-        print(encrypted_aes_key_len)
-        print(encrypted_aes_iv_len)
-        print(signature_len)
-        print(encrypted_message)
-        print(encrypted_aes_key)
-        print(encrypted_aes_iv)
-        print(signature)
-        print("END")
 
         # Decrypt session key using own RSA private key
         session_aes_key = RSA.decrypt(encrypted_aes_key, receiver_private_key)

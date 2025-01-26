@@ -7,6 +7,20 @@ from typing import Tuple
 
 class RSA:
     @staticmethod
+    def _encrypt_block(block: bytes, public_key: RSAPublicKey) -> bytes:
+        plaintext_int = int.from_bytes(block, byteorder='big')
+        encrypted_numerical_block = pow(plaintext_int, public_key.public_numbers().e, public_key.public_numbers().n)
+        encrypted_block = encrypted_numerical_block.to_bytes((encrypted_numerical_block.bit_length() + 7) // 8, byteorder='big')
+        return encrypted_block
+
+    @staticmethod
+    def _decrypt_block(block: bytes, private_key: RSAPrivateKey) -> bytes:
+        ciphertext_int = int.from_bytes(block, byteorder='big')
+        decrypted_numerical_block = pow(ciphertext_int, private_key.private_numbers().d, private_key.private_numbers().public_numbers.n)
+        decrypted_block = decrypted_numerical_block.to_bytes((decrypted_numerical_block.bit_length() + 7) // 8, byteorder='big')
+        return decrypted_block
+
+    @staticmethod
     def encrypt(plaintext: str | bytes, public_key: RSAPublicKey) -> bytes:
         """
 
@@ -19,12 +33,11 @@ class RSA:
         """
         if not isinstance(plaintext, bytes):
             plaintext = plaintext.encode('utf-8')
-        # Convert plaintext to an integer
-        plaintext_int = int.from_bytes(plaintext, byteorder='big')
-        # Encryption c = m^e % n
-        ciphertext_int = pow(plaintext_int, public_key.public_numbers().e, public_key.public_numbers().n)
-        # Convert ciphertext to bytes
-        ciphertext = ciphertext_int.to_bytes((ciphertext_int.bit_length() + 7) // 8, byteorder='big')
+        blocks = [plaintext[i:i + 256] for i in range(0, len(plaintext), 256)]
+
+        encrypted_blocks = [RSA._encrypt_block(block, public_key) for block in blocks]
+        ciphertext = b''.join(encrypted_blocks)
+
         return ciphertext
 
     @staticmethod
@@ -40,12 +53,12 @@ class RSA:
         """
         if not isinstance(ciphertext, bytes):
             ciphertext = ciphertext.encode('utf-8')
-        # Convert ciphertext to an integer
-        ciphertext_int = int.from_bytes(ciphertext, byteorder='big')
-        # Decryption m = c^d % n
-        plaintext_int = pow(ciphertext_int, private_key.private_numbers().d, private_key.private_numbers().public_numbers.n)
-        # Convert plaintext to bytes
-        plaintext = plaintext_int.to_bytes((plaintext_int.bit_length() + 7) // 8, byteorder='big')
+
+        blocks = [ciphertext[i:i + 256] for i in range(0, len(ciphertext), 256)]
+
+        decrypted_blocks = [RSA._decrypt_block(block, private_key) for block in blocks]
+        plaintext = b''.join(decrypted_blocks)
+
         return plaintext
 
 
